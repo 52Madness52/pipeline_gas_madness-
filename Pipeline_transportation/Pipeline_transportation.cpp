@@ -21,11 +21,9 @@ struct Compressor_station
 
 };
 
+
 int main()
 {
-    SetConsoleCP(CP_UTF8);
-    SetConsoleOutputCP(CP_UTF8);
-
     Pipeline pipe;
     pipe.pipe_name;
     pipe.pipe_length;
@@ -50,5 +48,23 @@ int main()
 
     cin >> user_inp;
 
-    
+    switch (user_inp) 
+    {
+    case 0:
+        break;
+    case 1:
+        break;
+    case 2:
+        break;
+    case 3:
+        break;
+    case 4:
+        break;
+    case 5:
+        break;
+    case 6:
+        break;
+    case 7:
+        break;      
+    }
 }
