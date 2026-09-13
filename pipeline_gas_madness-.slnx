@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Pipeline_transportation/Pipeline_transportation.vcxproj" Id="26f573cd-e83e-4b29-9082-29b92356a129" />
+</Solution>
