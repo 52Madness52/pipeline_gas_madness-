@@ -23,7 +23,6 @@ struct Compressor_station
     int comp_station_class;
 };
 
-
 void Int_error(int& value)
 {
     while (true)
@@ -50,6 +49,39 @@ void Int_error(int& value)
     }
 }
 
+void Double_error(double& value)
+{
+    while (true)
+    {
+        while (!(cin >> value))
+        {
+            cout << "invalid input try again: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+
+        string rest1;
+        getline(cin, rest1);
+
+        if (rest1.empty())
+        {
+            break;
+        }
+
+        cout << "invalid input try again: ";
+    }
+}
+
+void Negative_check(int& value)
+{
+    while (value < 0)
+    {
+        cout << "Numbers negative. Try again: ";
+        Int_error(value);
+    }
+}
+
 void Menu_print()
 {
     cout << "1.Add pipe" << endl;
@@ -64,6 +96,7 @@ void Menu_print()
 
 void Pipeline_print(const Pipeline& pipe)
 {
+    cout << "----PIPE----" << endl;
     cout << "Pipe name: " << pipe.pipe_name << endl;
     cout << "Pipe length: " << pipe.pipe_length << endl;
     cout << "Pipe diameter: " << pipe.pipe_diameter << endl;
@@ -72,6 +105,7 @@ void Pipeline_print(const Pipeline& pipe)
 
 void Compressor_print(const Compressor_station& comp)
 {
+    cout << "----Compressor Station----" << endl;
     cout << "Compressor name: " << comp.comp_name << endl;
     cout << "Number of workshops: " << comp.comp_workshops << endl;
     cout << "Number of working workshops: " << comp.comp_workshops_working << endl;
@@ -83,22 +117,22 @@ void Pipeline_input(Pipeline& pipe)
     string condition;
     
     cout << "Enter pipe name: ";
-    cin >> pipe.pipe_name;
+    getline(cin >> ws, pipe.pipe_name);
+
 
     cout << "Enter pipe length: ";
-    while (!(cin >> pipe.pipe_length))
+    Double_error(pipe.pipe_length);
+    while (pipe.pipe_length < 0)
     {
-        cout << "invalid input try again: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Numbers negative. Try again: ";
+        Double_error(pipe.pipe_length);
 
     }
     
     cout << "Enter pipe diameter: ";
     Int_error(pipe.pipe_diameter);
+    Negative_check(pipe.pipe_diameter);
 
-
-    
     while (condition != "No" || condition != "Yes" || condition != "Y" || condition != "N")
     {
         cout << "Enter pipe condition (Yes/No): ";
@@ -126,16 +160,26 @@ void Pipeline_input(Pipeline& pipe)
 void Compressor_input(Compressor_station& comp)
 {
     cout << "Enter compressor name: ";
-    cin >> comp.comp_name;
-
+    getline(cin >> ws, comp.comp_name);
+   
     cout << "Enter number of workshops: ";
     Int_error(comp.comp_workshops);
-  
+    Negative_check(comp.comp_workshops);
+    
     cout << "Enter number of working workshops: ";
     Int_error(comp.comp_workshops_working);
-     
+    Negative_check(comp.comp_workshops_working);
+
+    while (comp.comp_workshops < comp.comp_workshops_working)
+    {
+        cout << "The total number of workshops is less than the number of working workshops. Try again: ";
+        Int_error(comp.comp_workshops_working);
+        Negative_check(comp.comp_workshops_working);
+    }
+    
     cout << "Enter station class: ";
     Int_error(comp.comp_station_class);
+    Negative_check(comp.comp_station_class);
 
     cout << endl;
 }
@@ -148,7 +192,7 @@ void Pipe_edit(Pipeline& pipe)
     {
         cout << "Current status: Yes" << endl;
     }
-    else if (pipe.pipe_condition = false)
+    else
     {
         cout << "Current status: No" << endl;
     }
@@ -187,7 +231,8 @@ void Compressor_edit(Compressor_station& comp)
     cout << "2.Stop a workshop" << endl;
 
     cout << "Enter: ";
-    cin >> user_inp_2;
+    Int_error(user_inp_2);
+    Negative_check(user_inp_2);
 
     if (user_inp_2 == 1 && (comp.comp_workshops_working < comp.comp_workshops))
     {
@@ -203,42 +248,74 @@ void Compressor_edit(Compressor_station& comp)
     }
 }
 
-void File_save(Pipeline& pipe, Compressor_station& comp)
+void File_save(const Pipeline& pipe, const Compressor_station& comp, bool Pipeline_add, bool Compressor_add)
 {
-    ofstream file;
-    file.open("data_pipe_comp.txt");
-    file << pipe.pipe_name << endl;
-    file << pipe.pipe_length << endl;
-    file << pipe.pipe_diameter << endl;
-    file << pipe.pipe_condition << endl;
+    ofstream file("data_pipe_comp.txt");
 
-    file << comp.comp_name << endl;
-    file << comp.comp_workshops << endl;
-    file << comp.comp_workshops_working << endl;
-    file << comp.comp_station_class << endl;
+    if (!file.is_open())
+    {
+        cout << "Error: cannot open file.";
+        return;
+    }
+
+    file << Pipeline_add << endl;
+
+    if (Pipeline_add)
+    {
+        file << pipe.pipe_name << endl;
+        file << pipe.pipe_length << endl;
+        file << pipe.pipe_diameter << endl;
+        file << pipe.pipe_condition << endl;
+    }
+
+    file << Compressor_add << endl;
+
+    if (Compressor_add)
+    {
+        file << comp.comp_name << endl;
+        file << comp.comp_workshops << endl;
+        file << comp.comp_workshops_working << endl;
+        file << comp.comp_station_class << endl;
+    }
+    
     file.close();
 }
 
-void File_upload(Pipeline& pipe, Compressor_station& comp)
+bool File_upload(Pipeline& pipe, Compressor_station& comp, bool& Pipeline_add, bool& Compressor_add)
 {
     ifstream file("data_pipe_comp.txt");
 
     if (!file.is_open())
     {
         cout << "Error: file not found." << endl;
-        return;
+        return false;
     }
 
-    file >> pipe.pipe_name;
-    file >> pipe.pipe_length;
-    file >> pipe.pipe_diameter;
-    file >> pipe.pipe_condition;
-    file >> comp.comp_name;
-    file >> comp.comp_workshops;
-    file >> comp.comp_workshops_working;
-    file >> comp.comp_station_class;
+    file >> Pipeline_add;
+
+    if (Pipeline_add)
+    {
+        getline(file >> ws, pipe.pipe_name);
+        file >> pipe.pipe_length;
+        file >> pipe.pipe_diameter;
+        file >> pipe.pipe_condition;
+    }
+
+    file >> Compressor_add;
+
+    if (Compressor_add)
+    {
+        getline(file >> ws, comp.comp_name);
+        file >> comp.comp_workshops;
+        file >> comp.comp_workshops_working;
+        file >> comp.comp_station_class;
+    }
+    
     file.close();
+
+    return true;
 }
+
 
 int main()
 {
@@ -249,8 +326,6 @@ int main()
     bool Pipeline_add = false;
     bool Compressor_add = false;
 
-    
-    
     do
     {
         Menu_print();
@@ -296,33 +371,58 @@ int main()
             }
             else
             {
-                cout << endl << "Compressor station dont find" << endl;
+                cout << "Compressor station dont find" << endl;
             }
             cout << endl;
             break;
         }
         case 4:
         {
+            if (Pipeline_add == true)
+            {
+                Pipe_edit(pipe);
+            }
+            else
+            {
+                cout << "Pipe dont find. You can't edit pipe." << endl;
+            }
             cout << endl;
-            Pipe_edit(pipe);
             break;
         }
         case 5:
         {
+            if (Compressor_add == true)
+            {
+                Compressor_edit(comp);
+            }
+            else
+            {
+                cout << "Compressor station dont find. You can't edit Compressor station." << endl;
+            }
             cout << endl;
-            Compressor_edit(comp);
             break;
         }
         case 6:
         {
+            if (Pipeline_add || Compressor_add)
+            {
+                File_save(pipe, comp, Pipeline_add, Compressor_add);
+                cout << "Data saved successfully." << endl;
+            }
+            else
+            {
+                cout << "Error: no objects have been created yet." << endl;
+            }
             cout << endl;
-            File_save(pipe, comp);
             break;
         }
         case 7:
         {
+            if (File_upload(pipe, comp, Pipeline_add, Compressor_add))
+            {
+                cout << "Data loaded" << endl;
+            }
             cout << endl;
-            File_upload(pipe, comp);
             break;
         }
         default:
@@ -332,5 +432,5 @@ int main()
         }
         }
         
-    } while (user_inp != 0 || (user_inp < 0 && user_inp > 7));    
+    } while (user_inp != 0);    
 }
