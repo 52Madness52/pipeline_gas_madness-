@@ -1,5 +1,4 @@
 
-
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -23,7 +22,7 @@ struct Compressor_station
     int comp_station_class;
 };
 
-void Int_error(int& value)
+void Get_positive_int(int& value)
 {
     while (true)
     {
@@ -40,16 +39,23 @@ void Int_error(int& value)
         string rest;
         getline(cin, rest);
 
-        if (rest.empty())
+        if (!rest.empty())
         {
-            break;
+            cout << "invalid input try again: ";
+            continue;
         }
 
-        cout << "invalid input try again: ";
+        if (value < 0)
+        {
+            cout << "Numbers negative. Try again: ";
+            continue;
+        }
+    
+        break;
     }
 }
 
-void Double_error(double& value)
+void Get_positive_double(double& value)
 {
     while (true)
     {
@@ -64,21 +70,18 @@ void Double_error(double& value)
         string rest1;
         getline(cin, rest1);
 
-        if (rest1.empty())
+        if (!(rest1.empty()))
         {
-            break;
+            cout << "invalid input try again: ";
+            continue;
+        }
+        if (value < 0)
+        {
+            cout << "Numbers negative. Try again: ";
+            continue;
         }
 
-        cout << "invalid input try again: ";
-    }
-}
-
-void Negative_check(int& value)
-{
-    while (value < 0)
-    {
-        cout << "Numbers negative. Try again: ";
-        Int_error(value);
+        break;
     }
 }
 
@@ -119,19 +122,11 @@ void Pipeline_input(Pipeline& pipe)
     cout << "Enter pipe name: ";
     getline(cin >> ws, pipe.pipe_name);
 
-
     cout << "Enter pipe length: ";
-    Double_error(pipe.pipe_length);
-    while (pipe.pipe_length < 0)
-    {
-        cout << "Numbers negative. Try again: ";
-        Double_error(pipe.pipe_length);
-
-    }
+    Get_positive_double(pipe.pipe_length);
     
     cout << "Enter pipe diameter: ";
-    Int_error(pipe.pipe_diameter);
-    Negative_check(pipe.pipe_diameter);
+    Get_positive_int(pipe.pipe_diameter);
 
     while (condition != "No" || condition != "Yes" || condition != "Y" || condition != "N")
     {
@@ -163,23 +158,19 @@ void Compressor_input(Compressor_station& comp)
     getline(cin >> ws, comp.comp_name);
    
     cout << "Enter number of workshops: ";
-    Int_error(comp.comp_workshops);
-    Negative_check(comp.comp_workshops);
+    Get_positive_int(comp.comp_workshops);
     
     cout << "Enter number of working workshops: ";
-    Int_error(comp.comp_workshops_working);
-    Negative_check(comp.comp_workshops_working);
+    Get_positive_int(comp.comp_workshops_working);
 
     while (comp.comp_workshops < comp.comp_workshops_working)
     {
         cout << "The total number of workshops is less than the number of working workshops. Try again: ";
-        Int_error(comp.comp_workshops_working);
-        Negative_check(comp.comp_workshops_working);
+        Get_positive_int(comp.comp_workshops_working);
     }
     
     cout << "Enter station class: ";
-    Int_error(comp.comp_station_class);
-    Negative_check(comp.comp_station_class);
+    Get_positive_int(comp.comp_station_class);
 
     cout << endl;
 }
@@ -188,7 +179,7 @@ void Pipe_edit(Pipeline& pipe)
 {
     string condition_edit;
 
-    if (pipe.pipe_condition == true)
+    if (pipe.pipe_condition == true)//!!!
     {
         cout << "Current status: Yes" << endl;
     }
@@ -222,7 +213,7 @@ void Pipe_edit(Pipeline& pipe)
 
 void Compressor_edit(Compressor_station& comp)
 {
-    int user_inp_2;
+    int user_inp; //!!!
     cout << "Total workshops:" << comp.comp_workshops << endl;
     cout << "Working workshops:" << comp.comp_workshops_working << endl;
 
@@ -231,14 +222,14 @@ void Compressor_edit(Compressor_station& comp)
     cout << "2.Stop a workshop" << endl;
 
     cout << "Enter: ";
-    Int_error(user_inp_2);
-    Negative_check(user_inp_2);
+    Get_positive_int(user_inp);
+    
 
-    if (user_inp_2 == 1 && (comp.comp_workshops_working < comp.comp_workshops))
+    if (user_inp == 1 && (comp.comp_workshops_working < comp.comp_workshops))
     {
         cout << "New number of working workshops:" << ++comp.comp_workshops_working << endl;
     }
-    else if (user_inp_2 == 2 && comp.comp_workshops_working != 0)
+    else if (user_inp == 2 && comp.comp_workshops_working != 0)
     {
         cout << "New number of working workshops:" << --comp.comp_workshops_working << endl;
     }
@@ -248,7 +239,39 @@ void Compressor_edit(Compressor_station& comp)
     }
 }
 
-void File_save(const Pipeline& pipe, const Compressor_station& comp, bool Pipeline_add, bool Compressor_add)
+void Save_Pipeline(ofstream& file, Pipeline& pipe)
+{
+    file << pipe.pipe_name << endl;
+    file << pipe.pipe_length << endl;
+    file << pipe.pipe_diameter << endl;
+    file << pipe.pipe_condition << endl;
+}
+
+void Save_Compressor(ofstream& file, Compressor_station& comp)
+{
+    file << comp.comp_name << endl;
+    file << comp.comp_workshops << endl;
+    file << comp.comp_workshops_working << endl;
+    file << comp.comp_station_class << endl;
+}
+
+void Upload_Pipeline(ifstream& file, Pipeline& pipe)
+{
+    getline(file >> ws, pipe.pipe_name);
+    file >> pipe.pipe_length;
+    file >> pipe.pipe_diameter;
+    file >> pipe.pipe_condition;
+}
+
+void Upload_Compressor(ifstream& file, Compressor_station& comp)
+{
+    getline(file >> ws, comp.comp_name);
+    file >> comp.comp_workshops;
+    file >> comp.comp_workshops_working;
+    file >> comp.comp_station_class;
+}
+
+void File_save( Pipeline& pipe, Compressor_station& comp, bool Pipeline_add, bool Compressor_add)
 {
     ofstream file("data_pipe_comp.txt");
 
@@ -260,24 +283,15 @@ void File_save(const Pipeline& pipe, const Compressor_station& comp, bool Pipeli
 
     file << Pipeline_add << endl;
 
-    if (Pipeline_add)
-    {
-        file << pipe.pipe_name << endl;
-        file << pipe.pipe_length << endl;
-        file << pipe.pipe_diameter << endl;
-        file << pipe.pipe_condition << endl;
-    }
+    if (Pipeline_add)//!!
+        Save_Pipeline(file, pipe);
+        
 
     file << Compressor_add << endl;
 
-    if (Compressor_add)
-    {
-        file << comp.comp_name << endl;
-        file << comp.comp_workshops << endl;
-        file << comp.comp_workshops_working << endl;
-        file << comp.comp_station_class << endl;
-    }
-    
+    if (Compressor_add)//!!
+        Save_Compressor(file, comp);
+
     file.close();
 }
 
@@ -293,23 +307,14 @@ bool File_upload(Pipeline& pipe, Compressor_station& comp, bool& Pipeline_add, b
 
     file >> Pipeline_add;
 
-    if (Pipeline_add)
-    {
-        getline(file >> ws, pipe.pipe_name);
-        file >> pipe.pipe_length;
-        file >> pipe.pipe_diameter;
-        file >> pipe.pipe_condition;
-    }
+    if (Pipeline_add)//!!
+        Upload_Pipeline(file, pipe);
+    
 
     file >> Compressor_add;
 
-    if (Compressor_add)
-    {
-        getline(file >> ws, comp.comp_name);
-        file >> comp.comp_workshops;
-        file >> comp.comp_workshops_working;
-        file >> comp.comp_station_class;
-    }
+    if (Compressor_add)//!!!
+        Upload_Compressor(file, comp);
     
     file.close();
 
@@ -322,7 +327,7 @@ int main()
     Pipeline pipe{};
     Compressor_station comp{};
     
-    int user_inp;
+    int user_inp = 1;
     bool Pipeline_add = false;
     bool Compressor_add = false;
 
@@ -330,7 +335,7 @@ int main()
     {
         Menu_print();
         cout << "Enter: ";
-        Int_error(user_inp);
+        Get_positive_int(user_inp);
 
         switch (user_inp)
         {
@@ -357,7 +362,7 @@ int main()
         }
         case 3:
         {
-            if (Pipeline_add == true)
+            if (Pipeline_add)
             {
                 Pipeline_print(pipe);
             }
@@ -365,7 +370,7 @@ int main()
             {
                 cout << "Pipe dont find" << endl << endl;
             }
-            if (Compressor_add == true)
+            if (Compressor_add )
             {
                 Compressor_print(comp);
             }
